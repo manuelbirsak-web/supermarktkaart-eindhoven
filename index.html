@@ -21,13 +21,13 @@ function brand(t){const s=[t.brand,t.name,t.operator,t['brand:wikidata']].filter
 function dist(a,b){const R=6371,p=x=>x*Math.PI/180,dl=p(b[0]-a[0]),dn=p(b[1]-a[1]),v=Math.sin(dl/2)**2+Math.cos(p(a[0]))*Math.cos(p(b[0]))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(v))}
 function draw(){marks.clearLayers();const r=+$('radius').value,n={ah:0,lidl:0,jumbo:0,aldi:0,nettorama:0,plus:0};ring.setRadius(r*1000);$('rv').textContent=r+' km';data.filter(s=>$(s.brand)?.checked&&dist(center,[s.lat,s.lon])<=r).forEach(s=>{n[s.brand]++;L.circleMarker([s.lat,s.lon],{radius:7,color:'#fff',weight:1,fillColor:colors[s.brand],fillOpacity:1}).addTo(marks).bindPopup('<b>'+s.name+'</b><br>'+names[s.brand]+'<br>'+(s.address||'Adres niet vermeld')+'<br>'+dist(center,[s.lat,s.lon]).toFixed(1)+' km hemelsbreed')});$('counts').textContent='Getoond: '+Object.values(n).reduce((a,b)=>a+b,0)+' · '+Object.entries(n).map(([k,v])=>names[k]+' '+v).join(' · ');const u=new URL(location.href);u.searchParams.set('radius',r);u.searchParams.set('brands',Object.keys(names).filter(x=>$(x).checked).join(','));history.replaceState(null,'',u)}
 async function load(){
- const status=$('status'),cacheKey='supermarktkaart-v3-eindhoven';
+ const status=$('status'),cacheKey='supermarktkaart-v4-eindhoven';
  try{const cached=localStorage.getItem(cacheKey);if(cached){const parsed=JSON.parse(cached);if(Array.isArray(parsed)&&parsed.length){data=parsed;draw();status.textContent='Direct geladen uit cache ('+data.length+' locaties); actualiseren op de achtergrond…'}}}catch(e){}
- status.textContent=data.length?'Cache getoond; gegevens actualiseren…':'Locaties ophalen (maximaal 5 seconden)…';
- const q='[out:json][timeout:4];nwr(around:30000,51.4416,5.4697)["shop"="supermarket"];out center tags;';
+ status.textContent=data.length?'Cache getoond; gegevens actualiseren…':'Locaties ophalen (maximaal 7 seconden)…';
+ const q='[out:json][timeout:6];nwr(around:30000,51.4416,5.4697)["shop"="supermarket"];out center tags;';
  const base='https://overpass.kumi.systems/api/interpreter?data='+encodeURIComponent(q);
  const urls=[base,'https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q),'https://corsproxy.io/?url='+encodeURIComponent(base),'https://api.allorigins.win/raw?url='+encodeURIComponent(base)];
- const controller=new AbortController(),kill=setTimeout(()=>controller.abort(),4400);
+ const controller=new AbortController(),kill=setTimeout(()=>controller.abort(),6800);
  try{
   const response=await Promise.any(urls.map(async url=>{const r=await fetch(url,{signal:controller.signal,cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const j=await r.json();if(!Array.isArray(j.elements))throw Error('Ongeldig antwoord');return j}));
   clearTimeout(kill);controller.abort();
